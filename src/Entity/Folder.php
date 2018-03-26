@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Gedmo\Mapping\Annotation as Gedmo;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -43,11 +45,24 @@ class Folder
     private $createdAt;
 
     /**
-     * @var Folder|null
+     * @var ArrayCollection|Folder[]
      *
-     * @ORM\OneToOne(targetEntity="App\Entity\Folder", cascade={"persist", "remove"})
+     * @ORM\OneToMany(targetEntity="App\Entity\Folder", mappedBy="parent")
+     */
+    private $childFolders;
+
+    /**
+     * @var Folder
+     *
+     * @ORM\ManyToOne(targetEntity="App\Entity\Folder", inversedBy="childFolders")
+     * @ORM\JoinColumn(name="parent_id", referencedColumnName="id")
      */
     private $parent;
+
+    public function __construct()
+    {
+        $this->childFolders = new ArrayCollection();
+    }
 
     public function getId()
     {
@@ -90,15 +105,49 @@ class Folder
         return $this;
     }
 
-    public function getParent(): ?self
+    /**
+     * @return Collection|Folder[]
+     */
+    public function getChildFolders(): Collection
     {
-        return $this->parent;
+        return $this->childFolders;
     }
 
-    public function setParent(?self $parent): self
+    public function addFolder(Folder $folder): self
+    {
+        if (!$this->childFolders->contains($folder)) {
+            $this->childFolders[] = $folder;
+            $folder->setParent($this);
+        }
+
+        return $this;
+    }
+
+    public function removeFolder(Folder $folder): self
+    {
+        if ($this->childFolders->contains($folder)) {
+            $this->childFolders->removeElement($folder);
+            // set the owning side to null (unless already changed)
+            if ($folder->getParent() === $this) {
+                $folder->setParent(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setParent(Folder $parent): Folder
     {
         $this->parent = $parent;
 
         return $this;
+    }
+
+    /**
+     * @return Folder
+     */
+    public function getParent(): ?Folder
+    {
+        return $this->parent;
     }
 }
