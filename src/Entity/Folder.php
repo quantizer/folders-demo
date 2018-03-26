@@ -42,6 +42,13 @@ class Folder
      */
     private $createdAt;
 
+    /**
+     * @var Folder|null
+     *
+     * @ORM\OneToOne(targetEntity="App\Entity\Folder", cascade={"persist", "remove"})
+     */
+    private $parent;
+
     public function getId()
     {
         return $this->id;
@@ -79,6 +86,18 @@ class Folder
     public function setCreatedAt(\DateTimeInterface $createdAt): self
     {
         $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getParent(): ?self
+    {
+        return $this->parent;
+    }
+
+    public function setParent(?self $parent): self
+    {
+        $this->parent = $parent;
 
         return $this;
     }
