@@ -13,8 +13,8 @@ security:
                 default_target_path: homepage
                 csrf_token_generator: security.csrf.token_manager
     access_control:
-        - { path: ^/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
-#        - { path: ^/, roles: ROLE_USER }
+        - { path: ^/(login|registration), roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/folder, roles: ROLE_USER }
     encoders:
         App\Entity\User:
             algorithm: bcrypt

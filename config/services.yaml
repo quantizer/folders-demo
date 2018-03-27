@@ -28,4 +28,11 @@ services:
     # please note that last definitions always *replace* previous ones
 
     sensio_framework_extra.view.listener:
-            alias: Sensio\Bundle\FrameworkExtraBundle\EventListener\TemplateListener
+        alias: Sensio\Bundle\FrameworkExtraBundle\EventListener\TemplateListener
+
+    gedmo.listener.timestampable:
+        class: Gedmo\Timestampable\TimestampableListener
+        tags:
+            - { name: doctrine.event_subscriber, connection: default }
+        calls:
+            - [ setAnnotationReader, [ "@annotation_reader" ] ]

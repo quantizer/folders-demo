@@ -7,7 +7,6 @@ use App\Entity\User;
 use FOS\RestBundle\Controller\Annotations as FOSRest;
 use FOS\RestBundle\Controller\FOSRestController;
 use FOS\RestBundle\View\View;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -19,13 +18,12 @@ class FoldersController extends FOSRestController
      *
      * @return View
      *
-     * @Security("has_role('ROLE_USER')")
-     *
      * @FOSRest\Get("/folder/all")
      */
     public function allFolders()
     {
-        $folders = $this->getDoctrine()->getRepository(Folder::class)->findAll();
+        $user = $this->getUser();
+        $folders = $this->getDoctrine()->getRepository(Folder::class)->getAllRootFoldersByUser($user);
 
         return View::create($folders, Response::HTTP_OK, []);
     }
@@ -37,8 +35,6 @@ class FoldersController extends FOSRestController
      *
      * @return View
      *
-     * @Security("has_role('ROLE_USER')")
-     *
      * @FOSRest\Post("/folder/new")
      *
      * @throws BadRequestHttpException
@@ -49,6 +45,8 @@ class FoldersController extends FOSRestController
         $user = $this->getUser();
 
         $folderName = $request->request->get('folder_name');
+        $parentId = $request->request->get('parent_folder_id');
+
         if ($folderName) {
             $escapedFolderName = htmlspecialchars($folderName);
 
@@ -57,10 +55,23 @@ class FoldersController extends FOSRestController
             $folder->setOwner($user);
 
             $entityManager = $this->getDoctrine()->getManager();
+
+            if ($parentId) {
+                $parentFolder = $entityManager->getRepository(Folder::class)->find($parentId);
+
+                if (!$parentFolder) {
+                    throw new BadRequestHttpException();
+                }
+
+                $folder->setParent($parentFolder);
+            }
+
             $entityManager->persist($folder);
             $entityManager->flush();
 
-            return View::create($folder, Response::HTTP_OK, []);
+            $folders = $this->getDoctrine()->getRepository(Folder::class)->getAllRootFoldersByUser($user);
+
+            return View::create($folders, Response::HTTP_OK, []);
         }
 
         throw new BadRequestHttpException();
