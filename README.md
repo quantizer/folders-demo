@@ -1,5 +1,10 @@
 # Folder application
 
+Features:
+* Registration
+* Sign in
+* Creating nested folders
+
 ## Requirements
 
 * PHP ≥ 7.1 
